@@ -34,13 +34,13 @@ class Grid:
     def __init__(self, rows, cols, width, height, win):
         self.rows = rows
         self.cols = cols
+        self.cubes = [[Cube(self.board[i][j], i, j, width, height) for j in range(cols)] for i in range(rows)]
         self.width = width
         self.height = height
         self.model = None
         self.update_model()
         self.selected = None
         self.win = win
-        # TODO: add a cube field
 
     def update_model(self):
         # TODO: add logic to update the model
@@ -83,3 +83,30 @@ class Grid:
         # TODO: Add logic for solving the gui puzzle
         
         return False
+    
+class Cube:
+    rows = 9
+    cols = 9
+
+    def __init__(self, value, row, col, width, height):
+        self.value = value
+        self.temp = 0
+        self.row = row
+        self.col = col
+        self.width = width
+        self.height = height
+        self.selected = False
+
+    def draw(self, win):
+        # TODO: add logic
+        return
+
+    def draw_change(self, win, g=True):
+        # TODO: add logic
+        return
+
+    def set(self, val):
+        self.value = val
+
+    def set_temp(self, val):
+        self.temp = val
