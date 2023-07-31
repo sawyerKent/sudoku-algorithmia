@@ -6,11 +6,6 @@ from models import models
 from utils import utils
 pygame.font.init()
 
-"""
-    colors needed for: Grid::draw(), Cube::draw(), 
-    Cube::draw_change(), Cube::redraw_window()
-"""
-
 def main():
     win = pygame.display.set_mode((540,600))
     pygame.display.set_caption("Sudoku")
