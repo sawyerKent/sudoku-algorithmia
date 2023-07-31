@@ -1,5 +1,10 @@
 import pygame
 
+"""
+    colors needed for: Grid::draw(), Cube::draw(), 
+    Cube::draw_change(), Cube::redraw_window()
+"""
+
 # colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -44,7 +49,7 @@ def redraw_window(win, board, time, strikes):
     # Draw time
     fnt = pygame.font.SysFont("comicsans", 40)
     text = fnt.render("Time: " + format_time(time), 1, SAILOR_BLUE)
-    win.blit(text, (540 - 160, 560))
+    win.blit(text, (340, 540))
     # Draw Strikes
     text = fnt.render("X " * strikes, 1, RED)
     win.blit(text, (20, 560))
