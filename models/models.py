@@ -97,24 +97,6 @@ class Grid:
                     return False
         return True
 
-    def solve(self):
-        find = utils.find_empty(self.model)
-        if not find:
-            return True
-        else:
-            row, col = find
-
-        for i in range(1, 10):
-            if utils.valid(self.model, i, (row, col)):
-                self.model[row][col] = i
-
-                if self.solve():
-                    return True
-
-                self.model[row][col] = 0
-
-        return False
-
     def solve_gui(self):
         self.update_model()
         find = utils.find_empty(self.model)
@@ -142,6 +124,106 @@ class Grid:
                 pygame.display.update()
                 pygame.time.delay(100)
 
+        return False
+    
+    def solve_gui_efficient(self):
+        self.update_model()
+
+        # Using constraint propagation
+        domains, unassigned = self.initialize_domains()
+        queue = [((row, col), neighbor) for row in range(self.rows) for col in range(self.cols) if self.model[row][col] == 0 for neighbor in self.neighbors((row, col))]
+
+        if not self.ac3(queue, domains):
+            return False
+
+        # If any domain is empty, there's no solution
+        for domain in domains.values():
+            if not domain:
+                return False
+
+        # Backtracking with constraint propagation
+        return self.backtracking_search(domains, unassigned)
+
+
+    def initialize_domains(self):
+        domains = {}
+        unassigned = []
+        for row in range(self.rows):
+            for col in range(self.cols):
+                if self.model[row][col] == 0:
+                    domains[(row, col)] = {i for i in range(1, 10)}
+                    unassigned.append((row, col))
+                else:
+                    domains[(row, col)] = {self.model[row][col]}
+        return domains, unassigned
+
+    def revise(self, xi, xj, domains):
+        revised = False
+        values_xi = domains[xi].copy()
+        for x in values_xi:
+            if all(not utils.valid(self.model, x, xi) for y in domains[xj]):
+                domains[xi].remove(x)
+                revised = True
+        return revised
+
+    def ac3(self, queue, domains):
+        while queue:
+            xi, xj = queue.pop(0)
+            if self.revise(xi, xj, domains):
+                if not domains[xi]:
+                    return False
+                for neighbor in self.neighbors(xi):
+                    queue.append((neighbor, xi))
+        return True
+
+    def neighbors(self, xi):
+        neighbors = set()
+        row, col = xi
+        # Row constraints
+        for i in range(9):
+            if i != col:
+                neighbors.add((row, i))
+        # Column constraints
+        for i in range(9):
+            if i != row:
+                neighbors.add((i, col))
+        # Subgrid constraints
+        subgrid_row, subgrid_col = 3 * (row // 3), 3 * (col // 3)
+        for i in range(subgrid_row, subgrid_row + 3):
+            for j in range(subgrid_col, subgrid_col + 3):
+                if (i, j) != (row, col):
+                    neighbors.add((i, j))
+        return neighbors
+
+
+    def backtracking_search(self, domains, unassigned):
+        if not unassigned:
+            return True
+
+        var = min(unassigned, key=lambda x: len(domains[x]))
+        unassigned.remove(var)
+        row, col = var
+
+        for value in domains[var]:
+            if utils.valid(self.model, value, var):
+                self.model[row][col] = value
+                self.cubes[row][col].set(value)
+                self.cubes[row][col].draw_change(self.win, True)
+                self.update_model()
+                pygame.display.update()
+                pygame.time.delay(100)
+
+                if self.backtracking_search(domains, unassigned):
+                    return True
+
+                self.model[row][col] = 0
+                self.cubes[row][col].set(0)
+                self.update_model()
+                self.cubes[row][col].draw_change(self.win, False)
+                pygame.display.update()
+                pygame.time.delay(100)
+
+        unassigned.append(var)
         return False
     
 class Cube:

@@ -62,8 +62,11 @@ def main():
                     board.clear()
                     key = None
 
-                if event.key == pygame.K_SPACE:
+                if event.key == pygame.K_b:
                     board.solve_gui()
+
+                if event.key == pygame.K_c:
+                    board.solve_gui_efficient()
 
                 if event.key == pygame.K_RETURN:
                     i, j = board.selected
