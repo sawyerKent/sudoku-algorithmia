@@ -1,4 +1,5 @@
 import pygame
+import random
 
 """
     colors needed for: Grid::draw(), Cube::draw(), 
@@ -63,3 +64,86 @@ def format_time(secs):
 
     mat = " " + str(minute) + ":" + str(sec)
     return mat
+
+def is_valid(board, row, col, num):
+    for x in range(9):
+        if board[row][x] == num:
+            return False
+        if board[x][col] == num:
+            return False
+    start_row, start_col = 3 * (row // 3), 3 * (col // 3)
+    for i in range(3):
+        for j in range(3):
+            if board[i + start_row][j + start_col] == num:
+                return False
+    return True
+
+def solve_board(board):
+    empty = find_empty(board)
+    if not empty:
+        return True
+    row, col = empty
+
+    for i in range(1, 10):
+        if is_valid(board, row, col, i):
+            board[row][col] = i
+            if solve_board(board):
+                return True
+            board[row][col] = 0
+    return False
+
+def find_empty(board):
+    for i in range(9):
+        for j in range(9):
+            if board[i][j] == 0:
+                return (i, j)
+    return None
+
+def create_board():
+    board = [[0 for _ in range(9)] for _ in range(9)]
+    
+    # Fill the diagonal sub-grids
+    for i in range(0, 9, 3):
+        fill_diagonal(board, i, i)
+
+    # Solve the rest of the board
+    solve_board(board)
+
+    # Remove symmetric pairs to create the puzzle
+    remove_symmetric_pairs(board)
+    
+    return board
+
+def fill_diagonal(board, row, col):
+    nums = list(range(1, 10))
+    random.shuffle(nums)
+    for i in range(3):
+        for j in range(3):
+            board[row + i][col + j] = nums.pop()
+
+def remove_symmetric_pairs(board):
+    pairs_to_remove = (81 - random.randint(20, 40)) // 2
+    for _ in range(pairs_to_remove):
+        row, col = random.randint(0, 4), random.randint(0, 8)
+        while board[row][col] == 0:
+            row, col = random.randint(0, 4), random.randint(0, 8)
+        board[row][col] = 0
+        board[8 - row][8 - col] = 0
+
+# def has_unique_solution(board):
+#     # Counting the number of solutions to check if it's unique
+#     solutions = 0
+#     empty = find_empty(board)
+#     if not empty:
+#         return True
+#     row, col = empty
+
+#     for i in range(1, 10):
+#         if is_valid(board, row, col, i):
+#             board[row][col] = i
+#             if solve_board(board):
+#                 solutions += 1
+#                 if solutions > 1:
+#                     return False
+#             board[row][col] = 0
+#     return solutions == 1
