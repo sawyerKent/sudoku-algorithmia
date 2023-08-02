@@ -63,10 +63,10 @@ def main():
                     key = None
 
                 if event.key == pygame.K_b:
-                    board.solve_gui()
+                    board.backtrace()
 
                 if event.key == pygame.K_c:
-                    board.solve_gui_efficient()
+                    board.constraint_propagation()
 
                 if event.key == pygame.K_RETURN:
                     i, j = board.selected
