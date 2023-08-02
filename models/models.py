@@ -97,7 +97,7 @@ class Grid:
                     return False
         return True
 
-    def solve_gui(self):
+    def backtrace(self):
         self.update_model()
         find = utils.find_empty(self.model)
         if not find:
@@ -114,7 +114,7 @@ class Grid:
                 pygame.display.update()
                 pygame.time.delay(100)
 
-                if self.solve_gui():
+                if self.backtrace():
                     return True
 
                 self.model[row][col] = 0
@@ -126,7 +126,7 @@ class Grid:
 
         return False
     
-    def solve_gui_efficient(self):
+    def constraint_propagation(self):
         self.update_model()
 
         # Using constraint propagation
