@@ -2,6 +2,104 @@ import pygame
 
 from utils import utils
 
+class Node:
+    def __init__(self):
+        self.left = self
+        self.right = self
+        self.up = self
+        self.down = self
+        self.column = None
+        self.row = -1
+
+class DLX:
+    def __init__(self, matrix):
+        self.header = Node()
+        self.nodes = []
+        self.solution = []
+        self.build(matrix)
+
+    def build(self, matrix):
+        prev_header = self.header
+        for j in range(len(matrix[0])):
+            node = Node()
+            node.up = node.down = node
+            prev_header.right = node
+            node.left = prev_header
+            self.nodes.append(node)
+            prev_header = node
+        prev_header.right = self.header
+        self.header.left = prev_header
+
+        for i, row in enumerate(matrix):
+            header_node = None
+            prev_node = None
+            for j, value in enumerate(row):
+                if value:
+                    col_node = self.nodes[j]
+                    new_node = Node()
+                    new_node.column = col_node
+                    new_node.row = i
+                    col_node.up.down = new_node
+                    new_node.up = col_node.up
+                    col_node.up = new_node
+                    new_node.down = col_node
+                    if prev_node:
+                        prev_node.right = new_node
+                        new_node.left = prev_node
+                    else:
+                        header_node = new_node
+                    prev_node = new_node
+            if header_node:
+                header_node.left = prev_node
+                prev_node.right = header_node
+
+    def cover(self, col_node):
+        col_node.right.left = col_node.left
+        col_node.left.right = col_node.right
+        i = col_node.down
+        while i != col_node:
+            j = i.right
+            while j != i:
+                j.down.up = j.up
+                j.up.down = j.down
+                j = j.right
+            i = i.down
+
+    def uncover(self, col_node):
+        i = col_node.up
+        while i != col_node:
+            j = i.left
+            while j != i:
+                j.down.up = j
+                j.up.down = j
+                j = j.left
+            i = i.up
+        col_node.right.left = col_node
+        col_node.left.right = col_node
+
+    def search(self, k=0):
+        if self.header.right == self.header:
+            return True
+        col_node = self.header.right
+        self.cover(col_node)
+        row_node = col_node.down
+        while row_node != col_node:
+            self.solution.append(row_node.row)
+            j = row_node.right
+            while j != row_node:
+                self.cover(j.column)
+                j = j.right
+            if self.search(k + 1):
+                return True
+            self.solution.pop()
+            j = row_node.left
+            while j != row_node:
+                self.uncover(j.column)
+                j = j.left
+            row_node = row_node.down
+        self.uncover(col_node)
+        return False
+
 class Grid:
     # board = [
     #     [7, 8, 0, 4, 0, 0, 1, 2, 0],
@@ -98,7 +196,7 @@ class Grid:
                     return False
         return True
 
-    def solve_gui(self):
+    def backtrace(self):
         self.update_model()
         find = utils.find_empty(self.model)
         if not find:
@@ -115,7 +213,7 @@ class Grid:
                 pygame.display.update()
                 pygame.time.delay(100)
 
-                if self.solve_gui():
+                if self.backtrace():
                     return True
 
                 self.model[row][col] = 0
@@ -127,7 +225,7 @@ class Grid:
 
         return False
     
-    def solve_gui_efficient(self):
+    def constraint_propagation(self):
         self.update_model()
 
         # Using constraint propagation
@@ -227,6 +325,28 @@ class Grid:
         unassigned.append(var)
         return False
     
+    def dlx_solve(self):
+        # Convert the current Sudoku grid to an exact cover matrix
+        matrix = utils.sudoku_to_exact_cover(self.model)
+        
+        # Create a DLX object
+        dlx = DLX(matrix)
+
+        # Search for a solution using Algorithm X
+        if dlx.search():
+            # Fill the solution into the grid and GUI
+            for row_num in dlx.solution:
+                i = row_num // 81
+                j = (row_num // 9) % 9
+                n = row_num % 9 + 1
+                self.cubes[i][j].set(n)
+                self.cubes[i][j].draw_change(self.win, True)
+                self.update_model()
+                pygame.display.update()
+                pygame.time.delay(100)
+            return True
+        return False
+
 class Cube:
     rows = 9
     cols = 9

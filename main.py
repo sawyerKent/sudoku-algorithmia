@@ -63,10 +63,13 @@ def main():
                     key = None
 
                 if event.key == pygame.K_b:
-                    board.solve_gui()
+                    board.backtrace()
 
                 if event.key == pygame.K_c:
-                    board.solve_gui_efficient()
+                    board.constraint_propagation()
+                    
+                if event.key == pygame.K_d:
+                    board.dlx_solve()
 
                 if event.key == pygame.K_RETURN:
                     i, j = board.selected
@@ -93,7 +96,6 @@ def main():
 
         utils.redraw_window(win, board, play_time, strikes)
         pygame.display.update()
-
 
 main()
 pygame.quit()
