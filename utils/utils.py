@@ -130,20 +130,35 @@ def remove_symmetric_pairs(board):
         board[row][col] = 0
         board[8 - row][8 - col] = 0
 
-# def has_unique_solution(board):
-#     # Counting the number of solutions to check if it's unique
-#     solutions = 0
-#     empty = find_empty(board)
-#     if not empty:
-#         return True
-#     row, col = empty
+def sudoku_to_exact_cover(grid):
+    N = 9
+    M = N * N
+    matrix = [[0] * 324 for _ in range(729)]
 
-#     for i in range(1, 10):
-#         if is_valid(board, row, col, i):
-#             board[row][col] = i
-#             if solve_board(board):
-#                 solutions += 1
-#                 if solutions > 1:
-#                     return False
-#             board[row][col] = 0
-#     return solutions == 1
+    # Filling constraints
+    for i in range(N):
+        for j in range(N):
+            for n in range(N):
+                k = i * N + j
+                row_num = k * N + n
+
+                # Cell constraint
+                matrix[row_num][k] = 1
+
+                # Row constraint
+                matrix[row_num][M + i * N + n] = 1
+
+                # Column constraint
+                matrix[row_num][2 * M + j * N + n] = 1
+
+                # Box constraint
+                box_num = (i // 3) * 3 + (j // 3)
+                matrix[row_num][3 * M + box_num * N + n] = 1
+
+                # If the cell is already filled in the grid, reduce it to a single possibility
+                if grid[i][j] != 0:
+                    for num in range(N):
+                        if num != grid[i][j] - 1:
+                            matrix[k * N + num] = [0] * 324
+
+    return matrix
