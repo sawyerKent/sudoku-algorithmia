@@ -63,3 +63,36 @@ def format_time(secs):
 
     mat = " " + str(minute) + ":" + str(sec)
     return mat
+
+def sudoku_to_exact_cover(grid):
+    N = 9
+    M = N * N
+    matrix = [[0] * 324 for _ in range(729)]
+
+    # Filling constraints
+    for i in range(N):
+        for j in range(N):
+            for n in range(N):
+                k = i * N + j
+                row_num = k * N + n
+
+                # Cell constraint
+                matrix[row_num][k] = 1
+
+                # Row constraint
+                matrix[row_num][M + i * N + n] = 1
+
+                # Column constraint
+                matrix[row_num][2 * M + j * N + n] = 1
+
+                # Box constraint
+                box_num = (i // 3) * 3 + (j // 3)
+                matrix[row_num][3 * M + box_num * N + n] = 1
+
+                # If the cell is already filled in the grid, reduce it to a single possibility
+                if grid[i][j] != 0:
+                    for num in range(N):
+                        if num != grid[i][j] - 1:
+                            matrix[k * N + num] = [0] * 324
+
+    return matrix
